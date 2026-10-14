@@ -1,0 +1,6 @@
+- insert:
+    - id: reply-suggestions
+      name: dsh-reply-suggestions
+      config:
+        enabled: true
+        timeoutMs: 20000
