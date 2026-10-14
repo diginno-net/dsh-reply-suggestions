@@ -1,6 +1,7 @@
 {
   "name": "dsh-reply-suggestions",
-  "version": "0.1.4",
+  "version": "0.1.5",
+  "icon": "./icon.png",
   "description": "Suggest your next question from the conversation. Press Enter to fill it in, then edit and send.",
   "type": "module",
   "main": "lib/index.mjs",
@@ -33,6 +34,7 @@
     "test": "node --test tests/*.test.mjs"
   },
   "files": [
+    "icon.png",
     "lib",
     "locale/*.json",
     "cordis.patch.yml",

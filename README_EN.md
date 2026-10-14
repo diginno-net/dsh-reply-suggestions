@@ -8,7 +8,7 @@ A composer suggestion plugin for [DeepSeek Harness](https://github.com/deepseek-
 
 | Item | Current version |
 | --- | --- |
-| Plugin | `0.1.4` |
+| Plugin | `0.1.5` |
 | Verified official desktop version | `0.2.0-rc.2` |
 | License | [MIT](./LICENSE) |
 
@@ -127,6 +127,7 @@ The implementation uses official Typert/Gateway RPC, `llm.stream`, the `conversa
 - Actual plugin fiber mounting, RPC, and disposal were verified using Cordis, Typert, and Host/Client Gateway from the official rc.2 installation, with a stub model.
 - Version `0.1.2` was tested in the real rc.2 desktop app for generation, display, first-Enter insertion, editing, Shift+Enter line breaks, sending, Escape, and session switching.
 - The `0.1.3` usage optimization and `0.1.4` display metadata update passed automated and resource checks. Real-model quality and desktop visual acceptance were not repeated for those updates.
+- Version `0.1.5` adds a transparent PNG chat icon. Dimensions, alpha, the 256 KB limit, and package inclusion have been checked; suggestion and keyboard logic are unchanged.
 
 Other Harness versions, third-party desktop shells, and real IME candidate selection require additional testing. Suggestions can always be edited or ignored.
 
