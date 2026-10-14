@@ -22,6 +22,12 @@ A composer suggestion plugin for [DeepSeek Harness](https://github.com/deepseek-
 - Reuse the model and credentials already configured in Harness. No additional API key is required.
 - View recommendation token usage for today, yesterday, the last 7 days, and the last 30 days on the plugin detail page.
 
+## Demo
+
+![Gray suggestion and first-Enter draft insertion](./assets/reply-suggestions-demo-0.1.16.png)
+
+Generated from the actual 0.1.16 client using its test fixture, then placed in a simulated conversation page. This is not a DSH desktop recording; the conversation and suggestion are demo data, with no model call.
+
 ## Installation
 
 ### Install from GitHub
