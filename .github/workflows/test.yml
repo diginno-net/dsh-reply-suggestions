@@ -1,0 +1,37 @@
+name: Node compatibility
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: ${{ matrix.os }} / Node ${{ matrix.node }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node: ['22', '24']
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node }}
+          package-manager-cache: false
+      # The build and tests use Node built-ins; DSH supplies peer dependencies.
+      - name: Build
+        run: npm run build
+      - name: Verify committed bundles are current
+        run: git diff --exit-code -- lib
+      - name: Test
+        run: npm test
+      - name: Check client bundle syntax
+        run: node --check lib/client.js
+      - name: Check package creation
+        run: npm pack --ignore-scripts

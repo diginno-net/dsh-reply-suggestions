@@ -8,7 +8,7 @@ A composer suggestion plugin for [DeepSeek Harness](https://github.com/deepseek-
 
 | Item | Current version |
 | --- | --- |
-| Plugin | `0.1.5` |
+| Plugin | `0.1.16` |
 | Verified official desktop version | `0.2.0-rc.2` |
 | License | [MIT](./LICENSE) |
 
@@ -20,6 +20,7 @@ A composer suggestion plugin for [DeepSeek Harness](https://github.com/deepseek-
 - Preserve IME confirmation and Shift/Ctrl/Command/Alt+Enter behavior.
 - Defer generation while the composer has a draft, attachments, references, or queued work. Hide suggestions while a task is running.
 - Reuse the model and credentials already configured in Harness. No additional API key is required.
+- View recommendation token usage for today, yesterday, the last 7 days, and the last 30 days on the plugin detail page.
 
 ## Installation
 
@@ -77,6 +78,56 @@ The plugin limits overhead as follows:
 
 Compared with the old version, the context cap drops from 14,000 to 1,600 characters, a reduction of about 88.6%. This is not the actual token savings on every request. Compression may omit relevant details from the middle of an answer or its code. No extra model call is used to summarize the context.
 
+## Usage statistics
+
+Open **Plugins → Reply Suggestions** to see lifetime totals plus four periods, including recorded tokens, input (including provider cache)/output tokens, request counts, and missing usage, failures and cancellations.
+
+The lifetime card includes all valid records since tracking began, including those older than 30 days. Deduplicate requests directly instead of adding overlapping period totals. Costs use each request's saved prices; missing usage/prices remain unknown or partial. Usage from before tracking began cannot be recovered.
+
+Two cards keep the panel compact: the left card defaults to today and offers yesterday, last 7 days and last 30 days in a dropdown; lifetime stays on the right. Switching uses the loaded snapshot without extra model calls or statistics requests.
+
+Total, input and output token counts automatically use K (thousands) or M (millions), with up to two decimal places, such as `12K` or `1.23M`. Values below 1,000 remain integers. Stored counts and cost calculations retain full precision.
+
+- Use actual `usage` chunks returned by DSH, not character-based token estimates.
+- The last 7/30 calendar days include today and follow the DSH Host's local time zone.
+- Count only this plugin's recommendation requests, excluding the main conversation, other plugins, and statistics RPC reads.
+- Reusing a completed recommendation makes no new model call and adds no usage. Provider-reported cache tokens still count toward recorded input.
+- Multiple cumulative usage chunks replace each other; only the last valid snapshot is recorded once. Usage already returned by a failed/cancelled request counts too. Requests without usage are marked unknown rather than treated as zero.
+- Records survive restarts, and the first recorded timestamp is shown. Historical usage from before this feature cannot be recovered.
+- Refresh every 15 seconds while the page is open, or click Refresh. Reading statistics does not call a model.
+
+Records live at `storages/dsh-reply-suggestions/usage.jsonl` under the Harness data directory, respecting `DSH_HOME` and defaulting to `~/.dsh`. Profiles sharing that directory share this plugin's statistics. Records contain an ID, timestamp, request status, and token counts. Since 0.1.8 they also store the requested provider/model and price version, with no conversation text, attachments, or credentials. Read/write problems are visibly marked as potentially incomplete statistics.
+
+### Cost estimates
+
+Each card shows a CNY API list-price range, from off-peak to peak. Statistics read local prices; updating prices reads the official webpage without calling a model. Built-in rates below were checked against the [official DeepSeek pricing page](https://api-docs.deepseek.com/zh-cn/quick_start/pricing) on 2026-10-14, in CNY per million tokens. After a successful update, new requests use the retrieved rates:
+
+| Model | Uncached input (off-peak/peak) | Cached input (off-peak/peak) | Output (off-peak/peak) |
+| --- | --- | --- | --- |
+| Flash | 1 / 2 | 0.02 / 0.04 | 4 / 8 |
+| Pro | 4.5 / 9 | 0.15 / 0.30 | 13.5 / 27 |
+
+Cost = ((input minus cached input) × input rate + cached input × cache rate + output × output rate) / one million. The range avoids guessing Chinese public holidays; it is not an actual bill, credit deduction, or subscription charge.
+
+- Official `deepseek` / `deepseek-account` Flash and Pro use their respective rates; official Flash aliases use Flash rates. Other providers/models are excluded.
+- Older 0.1.6/0.1.7 records have no model identifier. Keep them unchanged and label their estimates as assuming Flash. If a different model was used, this assumption does not apply.
+- Missing usage, unknown pricing, or requests before the rate's effective date are excluded, not counted as free. Partially priced periods are marked. Per-request ranges are summed.
+- New requests freeze a complete price snapshot before generation. Updating during a request does not change its cost; older requests retain their original rates, including the built-in versions used by 0.1.8.
+- Small amounts use up to six decimal places. Nonzero amounts below ¥0.000001 remain visible.
+
+### Updating prices
+
+Open **Plugins → Reply Suggestions** and click **更新价格** (Update prices) below recommendation usage. This is independent of the usage Refresh button, which only reads local records. The panel shows the last successful check, next check and errors.
+
+Use the **自动更新周期** (Automatic update interval) dropdown to select daily, every 3 days, weekly (7 days), every 30 days, or manual only. The selection saves and takes effect immediately, survives restart, and keeps the old setting if saving fails. Manual price updates remain available in manual-only mode.
+
+- Automatically check every 7 days by default. The Host checks whether an update is due hourly. First startup or an overdue restart checks immediately; no checks run while DSH is closed.
+- Failed automatic checks retry after 24 hours. Manual updates can retry immediately. Concurrent updates in one Host share one request.
+- Fetch only `https://api-docs.deepseek.com/zh-cn/quick_start/pricing/` with a 15-second timeout, no API key or conversation data, and no redirects.
+- Strictly parse Flash/Pro CNY rates per million tokens, with separate cached input, uncached input and output rates for each tier. Network errors, incompatible currency/units, missing fields or changed markup keep the previous prices with a visible error.
+- Check results and rates append to `storages/dsh-reply-suggestions/prices.jsonl` under the Harness data directory and survive restart. Persistence errors are visible.
+- Before a UI preference is saved, `autoUpdatePrices` / `priceUpdateDays` provide the defaults (7 days, with 1–30 days supported). Saved UI preferences take precedence, restore from `prices.jsonl`, and are shared by profiles using the same data directory.
+
 ## Optional configuration
 
 Defaults usually suffice. To use another model already configured in Harness, override the entry in the active profile's `cordis.patch.yml`:
@@ -86,6 +137,8 @@ Defaults usually suffice. To use another model already configured in Harness, ov
   config:
     enabled: true
     timeoutMs: 20000
+    autoUpdatePrices: true
+    priceUpdateDays: 7
     provider: your-configured-provider
     model: your-configured-model
 ```
@@ -96,26 +149,39 @@ Defaults usually suffice. To use another model already configured in Harness, ov
 | `timeoutMs` | `20000` | Timeout in milliseconds, from 1,000 to 60,000 |
 | `provider` | Follow conversation | Optional; must be a configured provider |
 | `model` | Follow conversation | Optional; must be available from that provider |
+| `autoUpdatePrices` | `true` | Automatic price checks; `false` keeps manual updates available |
+| `priceUpdateDays` | `7` | Check interval from 1 to 30 days; failures retry after 24 hours |
 
 Failures, timeouts, and invalid output leave normal composer behavior available. Look for `[reply-suggestions]` diagnostics in the client console.
 
 ## Development
 
-Build and test directly with Node.js 22 or later. No build dependencies need to be installed:
+Development requires Node.js 22 or later. Node 22.23.3 and 24.16.0 have been tested on Windows x64. No build dependencies need to be installed:
 
 ```powershell
-node scripts/build.mjs
-node --test tests/*.test.mjs
+npm run build
+npm test
 ```
+
+`npm test` enumerates test files explicitly to avoid wildcard expansion differences on Node 22 and Windows. Use `npm test -- --test-reporter=dot` for compact output.
+
+The [Node compatibility](./.github/workflows/test.yml) workflow runs on pushes, pull requests and manual dispatch. It tests Node 22 and 24 on Windows and Linux, checking the build, committed bundle consistency, all tests, client syntax and `npm pack`. The workflow becomes active when pushed to GitHub; local verification does not mean cloud jobs have run.
+
+Desktop plugins use DSH's bundled runtime. These Node checks do not replace desktop visual or real IME acceptance tests.
 
 ```text
 src/common.mjs       RPC contract, context compression, keyboard safeguards
 src/engine.mjs       Model requests, budget, cache, and timeout
+src/usage.mjs        Persistent usage records and calendar-day aggregation
+src/pricing.mjs      Versioned CNY rates and cost-range calculations
+src/price-updates.mjs Official HTML parsing, scheduled checks and price cache
 src/index.mjs        Host service registration
 src/client.cjs       Gray suggestion, scheduling, draft insertion
 lib/                 Prebuilt Host and client files
 locale/              Plugin title and Chinese/English descriptions
 scripts/build.mjs    Build script with no extra build dependencies
+scripts/test.mjs     Cross-platform test file enumeration and runner
+.github/workflows/test.yml Windows/Linux automation for Node 22/24
 tests/               Behavior and client lifecycle tests
 ```
 
@@ -123,11 +189,20 @@ The implementation uses official Typert/Gateway RPC, `llm.stream`, the `conversa
 
 ## Validation scope
 
-- 24 automated tests pass, covering Enter acceptance, IME composition events, held-key safeguards, session isolation, context budgets, deferred generation, cache, and cancellation.
+- Node 22.23.3 and 24.16.0 each pass 66 automated tests, covering recommendation interaction, placeholder lifecycle, usage/lifetime deduplication, date boundaries, costs, price updates, schedule persistence/failure/restart and statistics disposal. Verified on 2026-10-14.
+- Version `0.1.16` fixes duplicate model calls for concurrent identical requests, overlapping suggestions from duplicate composer mounts, and incorrectly cleared corrupt-price-cache warnings. Both Node versions pass RPC, cache accounting and restart checks using actual rc.2 libraries with a stub model; desktop visual acceptance remains separate.
 - Actual plugin fiber mounting, RPC, and disposal were verified using Cordis, Typert, and Host/Client Gateway from the official rc.2 installation, with a stub model.
 - Version `0.1.2` was tested in the real rc.2 desktop app for generation, display, first-Enter insertion, editing, Shift+Enter line breaks, sending, Escape, and session switching.
 - The `0.1.3` usage optimization and `0.1.4` display metadata update passed automated and resource checks. Real-model quality and desktop visual acceptance were not repeated for those updates.
 - Version `0.1.5` adds a transparent PNG chat icon. Dimensions, alpha, the 256 KB limit, and package inclusion have been checked; suggestion and keyboard logic are unchanged.
+- Version `0.1.6` was checked against official rc.2 Cordis, Typert, Gateway, and SlotCore for usage RPC, detail registration, and cache accounting. The real desktop detail page showed all four periods; one actual recommendation reported 223 tokens matching its persisted record. Refreshing statistics did not add a model request.
+- Version `0.1.7` moves placeholder suppression into the composer component and uses inline screen-reader-only styles, fixing overlapping text when reopening older conversations.
+- Version `0.1.8` adds CNY cost ranges. Real historical records of 911 tokens (844 input, 67 output) estimate ¥0.001112–¥0.002224 under the Flash assumption. Official rc.2 RPC and statistics component tests pass; this version has not had a new desktop visual acceptance check.
+- Version `0.1.9` adds manual and scheduled updates. Live official-page retrieval, persistence/reload and the real rc.2 Gateway update RPC pass without extra model calls. No new desktop visual acceptance check was performed.
+- Version `0.1.10` automatically abbreviates total, input and output token counts to K/M with up to two decimal places.
+- Version `0.1.11` adds the interval dropdown. Real rc.2 RPC checks verify saving and Host restart restoration; failures retain previous settings. No new desktop visual acceptance check was performed.
+- Version `0.1.12` directly hides native placeholders, observes replacements, and shares suppression leases across instances so old cleanup cannot restore an active placeholder. Desktop restart, return from the plugin page and history switching show one suggestion without overlapping placeholder text.
+- Version `0.1.13` adds lifetime totals with K/M formatting and original request prices. Records older than 30 days, duplicates, missing usage, corrupt/future records, the real rc.2 RPC and Host restart restoration are verified. No new desktop visual acceptance check was performed.
 
 Other Harness versions, third-party desktop shells, and real IME candidate selection require additional testing. Suggestions can always be edited or ignored.
 
