@@ -1,6 +1,6 @@
 {
   "name": "dsh-reply-suggestions",
-  "version": "0.1.17",
+  "version": "0.1.17-diginno.1",
   "icon": "./icon.png",
   "description": "Suggest your next question from the conversation. Press Enter to fill it in, then edit and send.",
   "type": "module",
@@ -29,10 +29,10 @@
     }
   },
   "peerDependencies": {
-    "@deepseek-ai/dsh": "0.2.0-rc.2 || 0.2.1-rc.2",
+    "@deepseek-ai/dsh": "0.2.1-rc.5",
     "@deepseek-ai/cordis": "~4.0.4",
-    "@deepseek-ai/dsh-typert-protocol": "0.2.0-rc.2 || 0.2.1-rc.2",
-    "@deepseek-ai/dsh-home-paths": "0.2.0-rc.2 || 0.2.1-rc.2"
+    "@deepseek-ai/dsh-typert-protocol": "0.2.1-rc.5",
+    "@deepseek-ai/dsh-home-paths": "0.2.1-rc.5"
   },
   "scripts": {
     "build": "node scripts/build.mjs",
@@ -44,16 +44,17 @@
     "locale/*.json",
     "cordis.patch.yml",
     "README.md",
+    "MAINTENANCE.md",
     "LICENSE",
     "README_EN.md"
   ],
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jabingu/dsh-reply-suggestions.git"
+    "url": "git+https://github.com/diginno-net/dsh-reply-suggestions.git"
   },
-  "homepage": "https://github.com/jabingu/dsh-reply-suggestions#readme",
+  "homepage": "https://github.com/diginno-net/dsh-reply-suggestions#readme",
   "bugs": {
-    "url": "https://github.com/jabingu/dsh-reply-suggestions/issues"
+    "url": "https://github.com/diginno-net/dsh-reply-suggestions/issues"
   }
 }

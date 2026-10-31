@@ -48,6 +48,10 @@ export function createRecommender(llm, config = {}, usageStore) {
         // The last valid cumulative snapshot replaces earlier usage chunks; never sum them.
         if (chunk.type === 'usage') { const value = normalizeUsage(chunk.usage); if (value) usage = value; }
         if (requestSignal.aborted) throw requestSignal.reason;
+        if (chunk.type === 'finish' && (chunk.reason.kind === 'error' || chunk.reason.kind === 'aborted')) {
+          status = chunk.reason.kind === 'aborted' ? 'cancelled' : 'failed';
+          throw Object.assign(new Error(chunk.reason.failure.message), { code: chunk.reason.failure.code });
+        }
         if (oversized) continue;
         if (chunk.type === 'text-delta') blocks.set(chunk.index, (blocks.get(chunk.index) ?? '') + chunk.text);
         if (chunk.type === 'block-end' && chunk.block.type === 'text') blocks.set(chunk.index, chunk.block.text);

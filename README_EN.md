@@ -1,5 +1,7 @@
 # Reply Suggestions
 
+> [Diginno maintenance repository](https://github.com/diginno-net/dsh-reply-suggestions): `0.1.17-diginno.1` targets DSH `0.2.1-rc.5` only. See [maintenance and rollback](./MAINTENANCE.md) for installation, tests and terminal model-failure handling, and [verification](./VERIFICATION.md) for evidence and limits. Based on [jabingu upstream](https://github.com/jabingu/dsh-reply-suggestions), retaining its Git history and MIT license. The upstream `0.1.17` instructions below are historical; their rc.2 compatibility and upstream installation address do not apply to this maintenance release.
+
 [简体中文](./README.md) · **English**
 
 Suggest your next question from the conversation. Press Enter to fill it in, then edit and send.

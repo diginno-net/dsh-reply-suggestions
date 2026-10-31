@@ -1,5 +1,7 @@
 # Reply Suggestions
 
+> [Diginno 维护仓库](https://github.com/diginno-net/dsh-reply-suggestions)：`0.1.17-diginno.1` 仅支持 DSH `0.2.1-rc.5`。安装、测试、模型终止失败处理及回滚见[维护说明](./MAINTENANCE.md)，验证范围见[验证记录](./VERIFICATION.md)。基于 [jabingu 上游](https://github.com/jabingu/dsh-reply-suggestions)，保留 Git 历史和 MIT 许可证。下文是上游 `0.1.17` 的历史说明；rc.2 版本及上游安装地址不适用于此维护版。
+
 **简体中文** · [English](./README_EN.md)
 
 根据上一轮对话，自动推荐下一句提问。回车填入，编辑后再发送。

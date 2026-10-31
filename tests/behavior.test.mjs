@@ -132,6 +132,22 @@ test('Failed requests do not poison the cache, and cancellation reaches the mode
   assert.equal(calls, 2);
 });
 
+for (const kind of ['error', 'aborted']) test(`rc.5 ${kind} finish rejects partial output without caching it`, async () => {
+  let calls = 0;
+  const records = [];
+  const recommend = createRecommender({ async *stream() {
+    calls++;
+    yield { type: 'usage', usage: { inputTokens: 10, outputTokens: 2, totalTokens: 12 } };
+    yield { type: 'text-delta', index: 0, text: 'Incomplete suggestion' };
+    if (calls === 1) yield { type: 'finish', reason: { kind, failure: { code: 'FIXTURE_FAILURE', message: 'Model did not finish' } } };
+  } }, {}, { record: async record => { records.push(record); } });
+  await assert.rejects(recommend(input), error => error.code === 'FIXTURE_FAILURE');
+  assert.equal(records[0].status, kind === 'aborted' ? 'cancelled' : 'failed');
+  assert.equal(records[0].usage.totalTokens, 12);
+  assert.equal(await recommend(input), 'Incomplete suggestion');
+  assert.equal(calls, 2);
+});
+
 test('Disabled generation never calls the model', async () => {
   const recommend = createRecommender({ stream() { throw new Error('must not be called'); } }, { enabled: false });
   assert.equal(await recommend(input), '');
