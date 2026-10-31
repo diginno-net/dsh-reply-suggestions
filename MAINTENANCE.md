@@ -4,7 +4,7 @@
 
 This checkout tracks jabingu/dsh-reply-suggestions upstream 0.1.17 (MIT). The local release is `0.1.17-diginno.1`, pinned to DSH `0.2.1-rc.5`. Other DSH versions require their own compatibility test before changing peers. Do not grant blanket version exemptions.
 
-The maintenance repository is [diginno-net/dsh-reply-suggestions](https://github.com/diginno-net/dsh-reply-suggestions), a private standalone repository retaining the upstream Git history and MIT license. Its canonical branch is `main`. Upstream remains [jabingu/dsh-reply-suggestions](https://github.com/jabingu/dsh-reply-suggestions), based at commit `1b6494b0d3de9d81f364a3a70642e352ec60387a`. Git remotes use `origin` for Diginno and `upstream` for jabingu. Do not push local patches to upstream without approval.
+The maintenance repository is [diginno-net/dsh-reply-suggestions](https://github.com/diginno-net/dsh-reply-suggestions), a public standalone repository retaining the upstream Git history and MIT license. Its canonical branch is `main`. Upstream remains [jabingu/dsh-reply-suggestions](https://github.com/jabingu/dsh-reply-suggestions), based at commit `1b6494b0d3de9d81f364a3a70642e352ec60387a`. Git remotes use `origin` for Diginno and `upstream` for jabingu. Do not push local patches to upstream without approval.
 
 The production installation uses a versioned tarball, not a live source link. Editing or pushing this checkout does not update the running app. Keep upstream attribution and compare upstream changes before incorporating them. Repository access does not grant access to production credentials or profiles.
 
@@ -27,7 +27,7 @@ The installed-app test boots a fresh named profile with separate HOME and DSH_HO
 
 ## Installing the maintenance build
 
-Clone the private Diginno repository with an authorized GitHub account, run the build and verification commands above, then run `npm pack --ignore-scripts`. Use the DSH Plugins page to install the resulting versioned `.tgz` by its absolute path. If the same package is already installed, follow the replacement procedure below rather than adding a duplicate. Do not use the upstream GitHub installation address from the historical README for this build. Keep the installed artifact unchanged; publish a new maintenance version for later runtime changes.
+Clone the public Diginno repository, run the build and verification commands above, then run `npm pack --ignore-scripts`. Use the DSH Plugins page to install the resulting versioned `.tgz` by its absolute path. If the same package is already installed, follow the replacement procedure below rather than adding a duplicate. Do not use the upstream GitHub installation address from the historical README for this build. Keep the installed artifact unchanged; publish a new maintenance version for later runtime changes.
 
 ## Release and rollback
 
