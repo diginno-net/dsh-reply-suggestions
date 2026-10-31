@@ -46,7 +46,10 @@
     "README.md",
     "MAINTENANCE.md",
     "LICENSE",
-    "README_EN.md"
+    "README_EN.md",
+    "README_ZH.md",
+    "VERIFICATION.md",
+    "assets/reply-suggestions-demo-0.1.16.png"
   ],
   "license": "MIT",
   "repository": {

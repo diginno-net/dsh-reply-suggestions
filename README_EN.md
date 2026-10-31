@@ -1,146 +1,85 @@
-# Reply Suggestions
+# Reply Suggestions — Diginno
 
-> [Diginno maintenance repository](https://github.com/diginno-net/dsh-reply-suggestions): `0.1.17-diginno.1` targets DSH `0.2.1-rc.5` only. See [maintenance and rollback](./MAINTENANCE.md) for installation, tests and terminal model-failure handling, and [verification](./VERIFICATION.md) for evidence and limits. Based on [jabingu upstream](https://github.com/jabingu/dsh-reply-suggestions), retaining its Git history and MIT license. The upstream `0.1.17` instructions below are historical; their rc.2 compatibility and upstream installation address do not apply to this maintenance release.
+[Tiếng Việt](./README.md) · **English** · [简体中文](./README_ZH.md)
 
-[简体中文](./README.md) · **English**
+A follow-up question plugin for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness). After the assistant replies, a gray suggestion appears in the empty composer. Press **Enter** to insert it as an editable draft, then edit and send — **it never sends automatically**.
 
-Suggest your next question from the conversation. Press Enter to fill it in, then edit and send.
+Diginno independently maintains this version based on [jabingu/dsh-reply-suggestions](https://github.com/jabingu/dsh-reply-suggestions), retaining upstream Git history and the MIT license. This is not an official DeepSeek plugin.
 
-A composer suggestion plugin for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness). After the assistant finishes, a gray suggestion appears in an empty composer. Accept it as an editable draft; it is never sent automatically.
-
-| Item | Current version |
+| Item | Version / status |
 | --- | --- |
-| Plugin | `0.1.17` |
-| Verified official desktop versions | `0.2.0-rc.2`, `0.2.1-rc.2` |
+| Plugin | `0.1.17-diginno.1` |
+| Supported DSH | **`0.2.1-rc.5`** |
+| Runtime verification platform | DSH Desktop on macOS |
+| Node.js for build/test | 22 or later; CI tests Node 22/24 on Windows/Linux |
 | License | [MIT](./LICENSE) |
+
+> Only the DSH version above is supported. Upstream `0.1.17` for rc.2 is not this maintenance build. Do not bypass compatibility checks to install on another DSH version.
 
 ## Features
 
-- Generate a relevant follow-up using the latest user question and assistant answer.
-- Press **Enter** once to insert the suggestion into the draft. Edit it, then send using Harness's normal behavior.
-- Press **Escape** to dismiss the current suggestion.
-- Preserve IME confirmation and Shift/Ctrl/Command/Alt+Enter behavior.
-- Defer generation while the composer has a draft, attachments, references, or queued work. Hide suggestions while a task is running.
-- Reuse the model and credentials already configured in Harness. No additional API key is required.
-- View recommendation token usage for today, yesterday, the last 7 days, and the last 30 days on the plugin detail page.
+- Suggest one follow-up based on the latest user question and assistant answer.
+- The first **Enter** only fills the draft; **Escape** dismisses it. Preserve DSH's IME and Shift/Ctrl/Command/Alt+Enter handling.
+- Defer generation when drafts, attachments, references or queued work exist; hide suggestions while a task runs.
+- Reuse the provider/model configured in DSH without another API key.
+- View tokens, request counts, failures/cancellations and cost estimates on the plugin detail page.
+- The Diginno build handles model `error`/`aborted` finishes: never cache partial output, while retaining reported usage.
 
 ## Demo
 
 ![Gray suggestion and first-Enter draft insertion](./assets/reply-suggestions-demo-0.1.16.png)
 
-Generated from the actual 0.1.16 client using its test fixture, then placed in a simulated conversation page. This is not a DSH desktop recording; the conversation and suggestion are demo data, with no model call.
+An upstream `0.1.16` client fixture placed in a simulated conversation page; **not rc.5 acceptance evidence**, with no real conversation or model call.
 
 ## Installation
 
-### Install from GitHub
+### 1. Pack the Diginno repository
 
-1. Open **Plugins** in DSH and check whether `dsh-reply-suggestions` is already installed. If it is, use the update action rather than adding it again.
-2. Confirm that the official desktop version is `0.2.0-rc.2` or `0.2.1-rc.2`.
-3. Select **Add plugin** and enter this repository address:
+Requires Git and Node.js 22 or later. Build/tests use Node built-ins; no `npm install` is needed.
 
-   ```text
-   https://github.com/jabingu/dsh-reply-suggestions
-   ```
-
-4. Follow the app's prompts to load and enable the plugin, then restart DSH.
-5. Complete a regular conversation turn, leave the composer empty, and wait for a gray suggestion.
-
-The repository includes prebuilt `lib/` files, so a manual build is unnecessary. DSH peers explicitly support `0.2.0-rc.2` and `0.2.1-rc.2`; check the interfaces before using another version.
-
-If DSH `0.2.1-rc.2` reports that plugin `0.1.16` is incompatible, update the plugin to `0.1.17`, fully exit DSH, then restart it. For a linked local installation, update the linked directory and restart. Existing usage records are retained.
-
-### Install from a local directory
-
-Download and extract the repository ZIP, or clone the repository. After checking that the plugin is not installed, enter the absolute path of the directory containing `package.json` in the same Add plugin dialog. Enable it and restart DSH.
-
-The official desktop profile is app-managed; use the desktop Plugins page. If you actually use `dsh web`, run these commands from the plugin directory:
-
-```powershell
-dsh plugin --profile web list --depth=0
-# Add only after confirming it is not installed:
-dsh plugin --profile web add .
+```sh
+git clone https://github.com/diginno-net/dsh-reply-suggestions.git
+cd dsh-reply-suggestions
+npm run build
+npm test
+npm pack --ignore-scripts
 ```
 
-To update a local linked installation, update its files and restart DSH. There is no need to install it again.
+This creates `dsh-reply-suggestions-0.1.17-diginno.1.tgz`. Prebuilt files are committed; the commands verify them before packing. Code on `main` can change, so retain the exact verified `.tgz` for each deployment.
 
-## Example
+### 2. Install in DSH
 
-Send:
+1. Confirm DSH is **`0.2.1-rc.5`** and has a working model configured.
+2. Open **Plugins** and check for an existing `dsh-reply-suggestions`. Back up before replacing an old version and follow the [replacement/rollback instructions](./MAINTENANCE.md); do not install a duplicate package name.
+3. Select **Add plugin**, enter the absolute path to the generated `.tgz`, and enable it.
+4. Follow the plugin manager's result. Restart only if required, after active tasks finish.
+5. Complete a conversation turn, leave the composer empty, and wait. Press Enter once to fill the draft, then edit and send normally.
 
-> Explain what a plugin is in two or three sentences, with an everyday analogy. Do not use tools or create files.
+The verified installation uses a fixed tarball. Editing source or running `git pull` **does not update the running plugin**. Direct GitHub-URL installation has not been verified for this maintenance build.
 
-After the answer, a gray suggestion might say, "Can you show me the simplest plugin example?" Press Enter once to insert it, edit it, and send. The model generates the suggestion, so its exact wording varies with the conversation.
+## Models, tokens and privacy
 
-## Models and token usage
+**Each generation makes an additional model request**, potentially consuming tokens/quota even if you ignore the suggestion. Opening an idle conversation can also trigger it. Provider/model defaults follow the answer, falling back to the session's current model when metadata is absent; configuration can override them.
 
-Generating a suggestion makes an additional model request. That request consumes usage even if you do not accept it. By default, the plugin uses the provider/model recorded with the assistant answer. When rc.2 records lack that metadata, it falls back to the session's current model projection.
+- Use only the latest turn: at most **400 characters** of user text and **1,200 characters** of assistant text; no full history, reasoning or attachment contents.
+- Compress long text in the middle and omit fenced code locally; important details may be lost.
+- Cap output at **96 tokens** (excluding input tokens); DeepSeek suggestion requests disable reasoning without changing the main conversation settings.
+- Wait **800 ms** while the composer is available and idle; cache up to 64 completed results and run at most two distinct generations concurrently.
+- Selected text is still sent to the configured provider. Local usage records contain no conversation text, attachments or credentials.
 
-The plugin limits overhead as follows:
+## Usage and costs
 
-- Send only the latest turn's text, excluding the full history, reasoning blocks, and attachment contents.
-- Limit the user question to **400 characters** and the assistant answer to **1,200 characters**, on both client and Host.
-- Keep roughly the first third and last two thirds of long text, marking the omitted middle. Omit Markdown fenced code locally while keeping surrounding prose and inline code.
-- Use a short instruction prompt and an output cap of **96 tokens**. This cap does not include input tokens.
-- Disable reasoning for DeepSeek suggestion requests without changing the main conversation's reasoning setting.
-- Wait **800 milliseconds** while the composer is available and idle before requesting. Typing during that delay cancels the timer.
-- If typing starts after dispatch, hide the suggestion temporarily and reuse the result when the draft is cleared, avoiding cancel-and-retry requests. Switching sessions, starting a new turn, or unloading still cancels the old request.
-- Cache up to 64 completed results on the Host and allow at most two concurrent generations.
+Open **Plugins → Reply Suggestions**: the left card selects today, yesterday, 7 days or 30 days; the right card shows lifetime totals since tracking began. Calendar boundaries use the DSH Host's time zone. Plugin-cache reuse is not a new request. Missing usage remains unknown rather than zero; failed/cancelled requests retain provider-reported tokens. Viewing or refreshing statistics does not call a model.
 
-Compared with the old version, the context cap drops from 14,000 to 1,600 characters, a reduction of about 88.6%. This is not the actual token savings on every request. Compression may omit relevant details from the middle of an answer or its code. No extra model call is used to summarize the context.
+Costs are **CNY estimates using public DeepSeek API prices**, not bills or actual quota deductions. Providers/models without matching rates are marked unknown or partially priced. Each request retains its price snapshot; price updates do not reprice history.
 
-## Usage statistics
+**更新价格** (Update prices) reads the [official pricing page](https://api-docs.deepseek.com/zh-cn/quick_start/pricing/) without sending API keys or conversations. Checks default to every 7 days; the menu supports daily, every 3/7/30 days or manual only. Automatic failures retry after 24 hours; network/parsing failures retain old rates and report an error. Saved UI preferences override initial configuration.
 
-Open **Plugins → Reply Suggestions** to see lifetime totals plus four periods, including recorded tokens, input (including provider cache)/output tokens, request counts, and missing usage, failures and cancellations.
-
-The lifetime card includes all valid records since tracking began, including those older than 30 days. Deduplicate requests directly instead of adding overlapping period totals. Costs use each request's saved prices; missing usage/prices remain unknown or partial. Usage from before tracking began cannot be recovered.
-
-Two cards keep the panel compact: the left card defaults to today and offers yesterday, last 7 days and last 30 days in a dropdown; lifetime stays on the right. Switching uses the loaded snapshot without extra model calls or statistics requests.
-
-Total, input and output token counts automatically use K (thousands) or M (millions), with up to two decimal places, such as `12K` or `1.23M`. Values below 1,000 remain integers. Stored counts and cost calculations retain full precision.
-
-- Use actual `usage` chunks returned by DSH, not character-based token estimates.
-- The last 7/30 calendar days include today and follow the DSH Host's local time zone.
-- Count only this plugin's recommendation requests, excluding the main conversation, other plugins, and statistics RPC reads.
-- Reusing a completed recommendation makes no new model call and adds no usage. Provider-reported cache tokens still count toward recorded input.
-- Multiple cumulative usage chunks replace each other; only the last valid snapshot is recorded once. Usage already returned by a failed/cancelled request counts too. Requests without usage are marked unknown rather than treated as zero.
-- Records survive restarts, and the first recorded timestamp is shown. Historical usage from before this feature cannot be recovered.
-- Refresh every 15 seconds while the page is open, or click Refresh. Reading statistics does not call a model.
-
-Records live at `storages/dsh-reply-suggestions/usage.jsonl` under the Harness data directory, respecting `DSH_HOME` and defaulting to `~/.dsh`. Profiles sharing that directory share this plugin's statistics. Records contain an ID, timestamp, request status, and token counts. Since 0.1.8 they also store the requested provider/model and price version, with no conversation text, attachments, or credentials. Read/write problems are visibly marked as potentially incomplete statistics.
-
-### Cost estimates
-
-Each card shows a CNY API list-price range, from off-peak to peak. Statistics read local prices; updating prices reads the official webpage without calling a model. Built-in rates below were checked against the [official DeepSeek pricing page](https://api-docs.deepseek.com/zh-cn/quick_start/pricing) on 2026-10-14, in CNY per million tokens. After a successful update, new requests use the retrieved rates:
-
-| Model | Uncached input (off-peak/peak) | Cached input (off-peak/peak) | Output (off-peak/peak) |
-| --- | --- | --- | --- |
-| Flash | 1 / 2 | 0.02 / 0.04 | 4 / 8 |
-| Pro | 4.5 / 9 | 0.15 / 0.30 | 13.5 / 27 |
-
-Cost = ((input minus cached input) × input rate + cached input × cache rate + output × output rate) / one million. The range avoids guessing Chinese public holidays; it is not an actual bill, credit deduction, or subscription charge.
-
-- Official `deepseek` / `deepseek-account` Flash and Pro use their respective rates; official Flash aliases use Flash rates. Other providers/models are excluded.
-- Older 0.1.6/0.1.7 records have no model identifier. Keep them unchanged and label their estimates as assuming Flash. If a different model was used, this assumption does not apply.
-- Missing usage, unknown pricing, or requests before the rate's effective date are excluded, not counted as free. Partially priced periods are marked. Per-request ranges are summed.
-- New requests freeze a complete price snapshot before generation. Updating during a request does not change its cost; older requests retain their original rates, including the built-in versions used by 0.1.8.
-- Small amounts use up to six decimal places. Nonzero amounts below ¥0.000001 remain visible.
-
-### Updating prices
-
-Open **Plugins → Reply Suggestions** and click **更新价格** (Update prices) below recommendation usage. This is independent of the usage Refresh button, which only reads local records. The panel shows the last successful check, next check and errors.
-
-Use the **自动更新周期** (Automatic update interval) dropdown to select daily, every 3 days, weekly (7 days), every 30 days, or manual only. The selection saves and takes effect immediately, survives restart, and keeps the old setting if saving fails. Manual price updates remain available in manual-only mode.
-
-- Automatically check every 7 days by default. The Host checks whether an update is due hourly. First startup or an overdue restart checks immediately; no checks run while DSH is closed.
-- Failed automatic checks retry after 24 hours. Manual updates can retry immediately. Concurrent updates in one Host share one request.
-- Fetch only `https://api-docs.deepseek.com/zh-cn/quick_start/pricing/` with a 15-second timeout, no API key or conversation data, and no redirects.
-- Strictly parse Flash/Pro CNY rates per million tokens, with separate cached input, uncached input and output rates for each tier. Network errors, incompatible currency/units, missing fields or changed markup keep the previous prices with a visible error.
-- Check results and rates append to `storages/dsh-reply-suggestions/prices.jsonl` under the Harness data directory and survive restart. Persistence errors are visible.
-- Before a UI preference is saved, `autoUpdatePrices` / `priceUpdateDays` provide the defaults (7 days, with 1–30 days supported). Saved UI preferences take precedence, restore from `prices.jsonl`, and are shared by profiles using the same data directory.
+Data lives in `storages/dsh-reply-suggestions/` under `DSH_HOME` (default `~/.dsh`): `usage.jsonl` stores usage, `prices.jsonl` stores rates and schedules. Profiles sharing `DSH_HOME` share plugin data. Never commit these files or profile backups to GitHub.
 
 ## Optional configuration
 
-Defaults usually suffice. To use another model already configured in Harness, override the entry in the active profile's `cordis.patch.yml`:
+Override the entry in the active profile's `cordis.patch.yml`:
 
 ```yaml
 - id: reply-suggestions
@@ -149,74 +88,33 @@ Defaults usually suffice. To use another model already configured in Harness, ov
     timeoutMs: 20000
     autoUpdatePrices: true
     priceUpdateDays: 7
-    provider: your-configured-provider
-    model: your-configured-model
+    # provider: your-configured-provider
+    # model: your-configured-model
 ```
 
-| Option | Default | Description |
+| Option | Default | Meaning |
 | --- | --- | --- |
-| `enabled` | `true` | Enable suggestion generation |
-| `timeoutMs` | `20000` | Timeout in milliseconds, from 1,000 to 60,000 |
-| `provider` | Follow conversation | Optional; must be a configured provider |
-| `model` | Follow conversation | Optional; must be available from that provider |
-| `autoUpdatePrices` | `true` | Automatic price checks; `false` keeps manual updates available |
-| `priceUpdateDays` | `7` | Check interval from 1 to 30 days; failures retry after 24 hours |
+| `enabled` | `true` | Generate suggestions |
+| `timeoutMs` | `20000` | Timeout, from 1,000 to 60,000 ms |
+| `provider` / `model` | Follow conversation | Provider/model already configured in DSH |
+| `autoUpdatePrices` | `true` | Automatic checks; `false` still permits manual updates |
+| `priceUpdateDays` | `7` | Interval of 1–30 days before a UI preference is saved |
 
-Failures, timeouts, and invalid output leave normal composer behavior available. Look for `[reply-suggestions]` diagnostics in the client console.
+## Testing and troubleshooting
 
-## Development
-
-Development requires Node.js 22 or later. Node 22.23.3 and 24.16.0 have been tested on Windows x64. No build dependencies need to be installed:
-
-```powershell
+```sh
 npm run build
 npm test
+# Optional on macOS with the exact DSH rc.5 installed:
+DSH_TEST_ELECTRON='/Applications/DeepSeek Harness.app/Contents/MacOS/DeepSeek Harness' npm test
 ```
 
-`npm test` enumerates test files explicitly to avoid wildcard expansion differences on Node 22 and Windows. Use `npm test -- --test-reporter=dot` for compact output.
+Installed-app acceptance uses a separate temporary profile, HOME and DSH_HOME with a fake model; it does not read production credentials/history. Verification on 2026-10-31 passed **69/69 tests** with this test enabled. Portable CI does not run the installed-app test. See the [CI workflow](https://github.com/diginno-net/dsh-reply-suggestions/actions/workflows/test.yml), [verification evidence and limits](./VERIFICATION.md), and [maintenance/rollback runbook](./MAINTENANCE.md) (English).
 
-The [Node compatibility](./.github/workflows/test.yml) workflow runs on pushes, pull requests and manual dispatch. It tests Node 22 and 24 on Windows and Linux, checking the build, committed bundle consistency, all tests, client syntax and `npm pack`. The workflow becomes active when pushed to GitHub; local verification does not mean cloud jobs have run.
+If suggestions are missing: check the DSH version and plugin status, ensure the task has finished and the composer is empty, then inspect provider errors or `[reply-suggestions]` logs. Failures, timeouts and invalid output leave normal input available. Automated tests do not guarantee suggestion quality across models, physical mobile keyboards or real IME behavior.
 
-Desktop plugins use DSH's bundled runtime. These Node checks do not replace desktop visual or real IME acceptance tests.
+Report bugs in [Diginno Issues](https://github.com/diginno-net/dsh-reply-suggestions/issues), including DSH/plugin versions, OS and reproduction steps. Remove tokens, credentials and private conversations first. Three README languages do not imply that the plugin UI has Vietnamese localization.
 
-```text
-src/common.mjs       RPC contract, context compression, keyboard safeguards
-src/engine.mjs       Model requests, budget, cache, and timeout
-src/usage.mjs        Persistent usage records and calendar-day aggregation
-src/pricing.mjs      Versioned CNY rates and cost-range calculations
-src/price-updates.mjs Official HTML parsing, scheduled checks and price cache
-src/index.mjs        Host service registration
-src/client.cjs       Gray suggestion, scheduling, draft insertion
-lib/                 Prebuilt Host and client files
-locale/              Plugin title and Chinese/English descriptions
-scripts/build.mjs    Build script with no extra build dependencies
-scripts/test.mjs     Cross-platform test file enumeration and runner
-.github/workflows/test.yml Windows/Linux automation for Node 22/24
-tests/               Behavior and client lifecycle tests
-```
+## Credits and license
 
-The implementation uses official Typert/Gateway RPC, `llm.stream`, the `conversation.input.overlay` slot, session snapshots, and draft actions. Composer DOM markers, draft actions and the detail-page slot have been checked in both supported versions and need review when those change.
-
-## Validation scope
-
-- Version `0.1.17` fixes the load rejection caused by `0.1.16` pinning the old DSH version. It explicitly supports `0.2.0-rc.2` and `0.2.1-rc.2` and passes the compatibility evaluator shipped in the new DSH. New Cordis, Typert, Host/Client Gateway and home-paths libraries verify recommendation RPC, usage, costs, price updates, schedule saving and restart recovery using a stub model and price response. Real records are unchanged; full desktop visual and real IME acceptance have not been repeated on the new release.
-- Node 22.23.3 and 24.16.0 each pass 66 automated tests, covering recommendation interaction, placeholder lifecycle, usage/lifetime deduplication, date boundaries, costs, price updates, schedule persistence/failure/restart and statistics disposal. Version 0.1.17 verified on 2026-10-18.
-- Version `0.1.16` fixes duplicate model calls for concurrent identical requests, overlapping suggestions from duplicate composer mounts, and incorrectly cleared corrupt-price-cache warnings. Both Node versions pass RPC, cache accounting and restart checks using actual rc.2 libraries with a stub model; desktop visual acceptance remains separate.
-- Actual plugin fiber mounting, RPC, and disposal were verified using Cordis, Typert, and Host/Client Gateway from the official rc.2 installation, with a stub model.
-- Version `0.1.2` was tested in the real rc.2 desktop app for generation, display, first-Enter insertion, editing, Shift+Enter line breaks, sending, Escape, and session switching.
-- The `0.1.3` usage optimization and `0.1.4` display metadata update passed automated and resource checks. Real-model quality and desktop visual acceptance were not repeated for those updates.
-- Version `0.1.5` adds a transparent PNG chat icon. Dimensions, alpha, the 256 KB limit, and package inclusion have been checked; suggestion and keyboard logic are unchanged.
-- Version `0.1.6` was checked against official rc.2 Cordis, Typert, Gateway, and SlotCore for usage RPC, detail registration, and cache accounting. The real desktop detail page showed all four periods; one actual recommendation reported 223 tokens matching its persisted record. Refreshing statistics did not add a model request.
-- Version `0.1.7` moves placeholder suppression into the composer component and uses inline screen-reader-only styles, fixing overlapping text when reopening older conversations.
-- Version `0.1.8` adds CNY cost ranges. Real historical records of 911 tokens (844 input, 67 output) estimate ¥0.001112–¥0.002224 under the Flash assumption. Official rc.2 RPC and statistics component tests pass; this version has not had a new desktop visual acceptance check.
-- Version `0.1.9` adds manual and scheduled updates. Live official-page retrieval, persistence/reload and the real rc.2 Gateway update RPC pass without extra model calls. No new desktop visual acceptance check was performed.
-- Version `0.1.10` automatically abbreviates total, input and output token counts to K/M with up to two decimal places.
-- Version `0.1.11` adds the interval dropdown. Real rc.2 RPC checks verify saving and Host restart restoration; failures retain previous settings. No new desktop visual acceptance check was performed.
-- Version `0.1.12` directly hides native placeholders, observes replacements, and shares suppression leases across instances so old cleanup cannot restore an active placeholder. Desktop restart, return from the plugin page and history switching show one suggestion without overlapping placeholder text.
-- Version `0.1.13` adds lifetime totals with K/M formatting and original request prices. Records older than 30 days, duplicates, missing usage, corrupt/future records, the real rc.2 RPC and Host restart restoration are verified. No new desktop visual acceptance check was performed.
-
-Other Harness versions, third-party desktop shells, and real IME candidate selection require additional testing. Suggestions can always be edited or ignored.
-
-## License
-
-[MIT](./LICENSE)
+Upstream author: [jabingu](https://github.com/jabingu/dsh-reply-suggestions). Diginno maintains a separate compatibility build based on upstream `0.1.17` at commit `1b6494b0d3de9d81f364a3a70642e352ec60387a`. The [MIT license](./LICENSE) is retained; future DSH versions are not automatically supported.
